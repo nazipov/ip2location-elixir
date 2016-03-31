@@ -1,33 +1,26 @@
 defmodule IP2Location.Database do
   alias IP2Location.Database.Storage
 
-  def lookup(ip_string) do
-    case :inet.parse_address(ip_string) do
-      { :ok, octets } -> 
-        lookup_ip(octets)
-      { :error, message } -> { :error, message }
-    end
-  end
-
-  defp lookup_ip(ip) do
+  def lookup(ip) do
     meta = Storage.get(:meta)
     data = Storage.get(:data)
 
-    lookup_ip(ip, meta, data)
-    |> IP2Location.Reader.read(data, meta.offsets)
+    case lookup_ip(ip, meta, data) do
+      -1  -> nil
+      row -> 
+        result = IP2Location.Reader.read(row, data, meta.offsets)
+        %{ result | ip: ip }
+    end
   end
 
-  defp lookup_ip({ a, b, c, d }, meta, data) do
-    { hi, offset, column_size } = meta.ipv4
-
+  defp lookup_ip(_, nil, nil), do: -1
+  defp lookup_ip({_, _, _, _, _, _, _, _}, %{ipv6: nil}, _), do: -1
+  defp lookup_ip({a, b, c, d}, %{ipv4: {hi, offset, column_size}}, data) do
     << a :: size(8), b :: size(8), c :: size(8), d :: size(8) >>
     |> fix_format(32)
     |> binsearch(32, 0, hi, offset, column_size, data)
   end
-
-  defp lookup_ip({ a, b, c, d, e, f, g, h }, meta, data) do
-    { hi, offset, column_size } = meta.ipv6
-
+  defp lookup_ip({a, b, c, d, e, f, g, h}, %{ipv6: {hi, offset, column_size}}, data) do
     << a :: size(16), b :: size(16), c :: size(16), d :: size(16),
        e :: size(16), f :: size(16), g :: size(16), h :: size(16) >>
     |> fix_format(128)

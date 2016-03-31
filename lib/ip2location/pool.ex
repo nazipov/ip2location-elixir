@@ -3,17 +3,10 @@ defmodule IP2Location.Pool do
     opts = [
       name:          { :local, __MODULE__ },
       worker_module: IP2Location.Server,
-      size:          5,
-      max_overflow:  10
+      size:          Application.get_env(:ip2location, :pool)[:size] || 5,
+      max_overflow:  Application.get_env(:ip2location, :pool)[:max_overflow] || 10
     ]
 
     :poolboy.child_spec(__MODULE__, opts, [])
-  end
-
-   def lookup(ip) do
-    :poolboy.transaction(
-      __MODULE__,
-      &GenServer.call(&1, { :lookup, ip })
-    )
   end
 end

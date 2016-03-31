@@ -26,18 +26,25 @@ defmodule IP2Location.Database.Loader do
     usagetype:          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 12, 20]
   }
 
-  def start_link(databases \\ []) do
-    GenServer.start_link(__MODULE__, databases, name: __MODULE__)
+  def start_link(filename \\ []) do
+    GenServer.start_link(__MODULE__, filename, name: __MODULE__)
   end
 
-  def init(database) do
-    load_database(database)
-    { :ok, database }
+  def init(filename) do
+    load_database(filename)
+    { :ok, %{ database: filename } }
+  end
+
+  def handle_call({ :load_database, filename }, _, state) do
+    case load_database(filename) do
+      :ok   -> { :reply, { :ok, filename }, %{ state | database: filename } }
+      error -> { :reply, error, %{ state | database: filename } }
+    end
   end
 
   defp load_database(database) do
     case File.regular?(database) do
-      false -> { :error, "Given file '#{database}' does not exists?!" }
+      false -> { :error, "File '#{database}' does not exists!" }
       true ->
         database
         |> read_database()
@@ -45,9 +52,7 @@ defmodule IP2Location.Database.Loader do
     end
   end
 
-  def read_database(filename) do
-    IO.puts "Reading file #{filename}"
-
+  defp read_database(filename) do
     data = File.read!(filename)
 
     <<db_type     :: size(8),
@@ -61,20 +66,20 @@ defmodule IP2Location.Database.Loader do
       ipv6_offset :: little-size(32),
       _           :: binary >> = data
 
-    # TODO: Add database file validator
-
     meta = %IP2Location.Metadata{
       db_type: db_type,
       version: { year, month, day },
       ipv4:    { ipv4_count, ipv4_offset, column <<< 2 },
-      ipv6:    { ipv6_count, ipv6_offset, 16 + ((column - 1) <<< 2) },
       offsets: calc_offsets(db_type)
     }
+    if ipv6_count > 0 do
+      meta = %{meta | ipv6: { ipv6_count, ipv6_offset, 16 + ((column - 1) <<< 2) } } 
+    end
 
     { meta, data }
   end
 
-  def save_data({ meta, data }) do
+  defp save_data({ meta, data }) do
     Storage.set(:meta, meta)
     Storage.set(:data, data)
 

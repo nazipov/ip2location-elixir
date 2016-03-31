@@ -1,5 +1,6 @@
 defmodule IP2Location.Result do
   defstruct [
+    :ip,
     :country,
     :country_long, 
     :region, 
