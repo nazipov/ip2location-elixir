@@ -1,7 +1,7 @@
 use Mix.Config
 
 path_db =
-     [ __DIR__, "../data/sample-ipv6-db24.bin" ]
+     [ __DIR__, "../data/ip2location-ipv6.bin" ]
   |> Path.join()
   |> Path.expand()
 
