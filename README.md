@@ -1,6 +1,7 @@
 # IP2Location
 
 [![Build Status](https://travis-ci.org/nazipov/ip2location-elixir.svg?branch=master)](https://travis-ci.org/nazipov/ip2location-elixir)
+[![Hex pm](https://img.shields.io/hexpm/v/ip2location.svg?style=flat)](https://hex.pm/packages/ip2location)
 
 Elixir library for the IP2Location database. Supports IPv4 and IPv6.
 
