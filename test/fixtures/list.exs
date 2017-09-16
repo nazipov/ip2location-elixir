@@ -6,7 +6,7 @@ defmodule IP2Location.TestFixtures.List do
   end
 
   def fixture_path(fixture_name) do
-    {_, _, filename} = fixtures |> Enum.find(fn({n, _, _}) -> n == fixture_name end)
+    {_, _, filename} = fixtures() |> Enum.find(fn({n, _, _}) -> n == fixture_name end)
     localname(filename)
   end
 
@@ -19,7 +19,7 @@ defmodule IP2Location.TestFixtures.List do
         "unzip -u -qq #{Path.basename(url)} #{filename}"
       ] 
       |> Enum.join(" && ") 
-      |> String.to_char_list 
+      |> String.to_charlist 
       |> :os.cmd
     end
   end
