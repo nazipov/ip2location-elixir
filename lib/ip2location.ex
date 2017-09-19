@@ -21,7 +21,7 @@ defmodule IP2Location do
   end
 
   def lookup(ip) when is_binary(ip) do
-    ip = String.to_char_list(ip)
+    ip = String.to_charlist(ip)
 
     case :inet.parse_address(ip) do
       { :ok, parsed } -> lookup(parsed)

@@ -72,8 +72,11 @@ defmodule IP2Location.Database.Loader do
       ipv4:    { ipv4_count, ipv4_offset, column <<< 2 },
       offsets: calc_offsets(db_type)
     }
-    if ipv6_count > 0 do
-      meta = %{meta | ipv6: { ipv6_count, ipv6_offset, 16 + ((column - 1) <<< 2) } } 
+    
+    meta = if ipv6_count > 0 do
+      %{meta | ipv6: { ipv6_count, ipv6_offset, 16 + ((column - 1) <<< 2) } } 
+    else
+      meta
     end
 
     { meta, data }
